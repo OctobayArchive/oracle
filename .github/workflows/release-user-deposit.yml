@@ -2,7 +2,7 @@ name: Release User Deposit
 
 on:
   issues:
-    type: [ opened ]
+    types: [ opened ]
 
 jobs:
   get-user-address:
