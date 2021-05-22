@@ -14,3 +14,4 @@ jobs:
           username: mktcode
           access-token: ${{ secrets.GITHUB_TOKEN }}
       - run: echo ${{ steps.user-address.outputs.address }}
+      - run: echo ${{ github.event.issue.author.login }}
