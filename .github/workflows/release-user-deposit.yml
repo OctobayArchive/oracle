@@ -21,6 +21,8 @@ jobs:
         with:
           username: ${{ env.username }}
           access-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Address Found
+        run: echo ${{ steps.user-address.outputs.address }}
   
   release-deposit:
     name: Release Deposit ${{ needs.get-user-address.outputs.address }}
