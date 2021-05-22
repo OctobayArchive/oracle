@@ -1,0 +1,16 @@
+name: Release User Deposit
+
+on:
+  issues:
+    type: [ opened ]
+
+jobs:
+  get-user-address:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: mktcode/get-user-address-action@v1
+        id: user-address
+        with:
+          username: mktcode
+          access-token: ${{ secrets.GITHUB_TOKEN }}
+      - run: echo ${{ steps.user-address.outputs.address }}
