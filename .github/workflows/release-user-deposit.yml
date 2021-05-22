@@ -12,11 +12,11 @@ jobs:
     name: Get User Address
     runs-on: ubuntu-latest
     steps:
-      - name: Get User Address for ${{ username }}
+      - name: Get User Address for ${{ env.username }}
         if: ${{ github.event.issue.title == 'Release User Deposit' }}
         uses: mktcode/get-user-address-action@v1
         id: user-address
         with:
-          username: ${{ username }}
+          username: ${{ env.username }}
           access-token: ${{ secrets.GITHUB_TOKEN }}
       - run: echo ${{ steps.user-address.outputs.address }}
