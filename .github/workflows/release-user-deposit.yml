@@ -23,10 +23,11 @@ jobs:
           access-token: ${{ secrets.GITHUB_TOKEN }}
   
   release-deposit:
-    name: Release Deposit to ${{ env.address }}
+    name: Release Deposit
     runs-on: ubuntu-latest
     needs: [ get-user-address ]
     env:
       address: needs.get-user-address.outputs.address
     steps:
-      - run: echo ${{ env.address }}
+      - name: Release Deposit to ${{ env.address }}
+        run: echo "Sending Transaction..."
