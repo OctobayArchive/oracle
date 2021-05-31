@@ -60,10 +60,10 @@ jobs:
       - name: Release Deposit to ${{ env.address }}
         uses: mktcode/ethtx-action@v1
         with:
-          rpc-node: ${{ RPC_NODE }}
-          seed-phrase: ${{ SEED_PHRASE }}
-          from: ${{ FROM_ADDRESS }}
-          to: ${{ DEPOSIT_STORAGE_ADDRESS }}
+          rpc-node: ${{ secrets.RPC_NODE }}
+          seed-phrase: ${{ secrets.SEED_PHRASE }}
+          from: ${{ secrets.FROM_ADDRESS }}
+          to: ${{ secrets.DEPOSIT_STORAGE_ADDRESS }}
           data: ${{ needs.prepare-transaction.outputs.data }}
   
   comment2:
