@@ -25,7 +25,7 @@ jobs:
           username: ${{ env.username }}
           access-token: ${{ secrets.GITHUB_TOKEN }}
   
-  comment1:
+  comment:
     name: Commenting on Issue (Processing...)
     runs-on: ubuntu-latest
     needs: [ get-user-config ]
@@ -34,7 +34,7 @@ jobs:
         uses: peter-evans/create-or-update-comment@v1
         with:
           issue-number: ${{ env.issueNumber }}
-          body: Processing your payout request...
+          body: "Processing your payout request: [show job run](https://github.com/octobay/oracle/actions/runs/${{ github.run_id }})"
   
   prepare-transaction:
     name: Preparing Ethereum Transaction
@@ -67,13 +67,13 @@ jobs:
           to: ${{ secrets.DEPOSIT_STORAGE_ADDRESS }}
           data: ${{ needs.prepare-transaction.outputs.data }}
   
-  comment2:
-    name: Commenting on Issue (Done)
+  comment-and-close:
+    name: Comment on Issue and close
     runs-on: ubuntu-latest
-    needs: [ get-user-config, release-deposit ]
+    needs: [ release-deposit ]
     steps:
-      - name: Create comment
-        uses: peter-evans/create-or-update-comment@v1
+      - name: Close Issue
+        uses: peter-evans/close-issue@v1
         with:
           issue-number: ${{ env.issueNumber }}
-          body: "Done! Deposit sent to: ${{ env.address }}"
+          comment: "Done! Deposit sent to: ${{ env.address }}"
