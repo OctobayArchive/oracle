@@ -65,6 +65,7 @@ jobs:
           from: ${{ secrets.FROM_ADDRESS }}
           to: ${{ secrets.DEPOSIT_STORAGE_ADDRESS }}
           data: ${{ needs.prepare-transaction.outputs.data }}
+      - run: echo ${{ needs.prepare-transaction.outputs.data }}
   
   comment2:
     name: Commenting on Issue (Done1)
