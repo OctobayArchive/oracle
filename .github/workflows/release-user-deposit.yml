@@ -9,16 +9,16 @@ env:
   issueNumber: ${{ github.event.issue.number }}
 
 jobs:
-  get-user-address:
-    name: Get User Address
+  get-user-config:
+    name: Get User Config
     runs-on: ubuntu-latest
     outputs:
-      address: ${{ steps.user-address.outputs.address }}
+      address: ${{ steps.user-config.outputs.address }}
     steps:
-      - name: Get Address for ${{ env.username }}
+      - name: Get Config for ${{ env.username }}
         if: ${{ github.event.issue.title == 'Release User Deposit' }}
-        uses: mktcode/get-user-address-action@v1
-        id: user-address
+        uses: octobay/get-user-config-action@v1
+        id: user-config
         with:
           username: ${{ env.username }}
           access-token: ${{ secrets.GITHUB_TOKEN }}
@@ -26,7 +26,7 @@ jobs:
   commenting:
     name: Commenting on Issue
     runs-on: ubuntu-latest
-    needs: [ get-user-address ]
+    needs: [ get-user-config ]
     steps:
       - name: Create comment
         uses: peter-evans/create-or-update-comment@v1
@@ -37,9 +37,9 @@ jobs:
   release-deposit:
     name: Release Deposit
     runs-on: ubuntu-latest
-    needs: [ get-user-address ]
+    needs: [ get-user-config ]
     env:
-      address: ${{ needs.get-user-address.outputs.address }}
+      address: ${{ needs.get-user-config.outputs.address }}
     steps:
       - name: Release Deposit to ${{ env.address }}
         run: echo "Sending Transaction..."
