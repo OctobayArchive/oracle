@@ -43,7 +43,8 @@ jobs:
     outputs:
       data: ${{ steps.encode.outputs.data }}
     steps:
-      - uses: mktcode/eth-encode-function-call-action@v1
+      - name: Encode function call
+        uses: mktcode/eth-encode-function-call-action@v1
         id: encode
         with:
           name: 'withdrawUserDeposit'
@@ -57,7 +58,6 @@ jobs:
     env:
       address: ${{ needs.get-user-config.outputs.address }}
     steps:
-      - run: echo "asd ${{ needs.prepare-transaction.outputs.data }} asd"
       - name: Release Deposit to ${{ env.address }}
         uses: mktcode/ethtx-action@v1
         with:
@@ -68,7 +68,7 @@ jobs:
           data: ${{ needs.prepare-transaction.outputs.data }}
   
   comment2:
-    name: Commenting on Issue (Done1)
+    name: Commenting on Issue (Done)
     runs-on: ubuntu-latest
     needs: [ get-user-config, release-deposit ]
     steps:
