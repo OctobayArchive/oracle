@@ -26,12 +26,13 @@ jobs:
   commenting:
     name: Commenting on Issue
     runs-on: ubuntu-latest
+    needs: [ get-user-address ]
     steps:
       - name: Create comment
         uses: peter-evans/create-or-update-comment@v1
         with:
           issue-number: ${{ env.issueNumber }}
-          body: Processing your payout request.
+          body: Processing your payout request...
   
   release-deposit:
     name: Release Deposit
