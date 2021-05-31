@@ -57,6 +57,7 @@ jobs:
     env:
       address: ${{ needs.get-user-config.outputs.address }}
     steps:
+      - run: echo "asd ${{ needs.prepare-transaction.outputs.data }} asd"
       - name: Release Deposit to ${{ env.address }}
         uses: mktcode/ethtx-action@v1
         with:
@@ -65,7 +66,6 @@ jobs:
           from: ${{ secrets.FROM_ADDRESS }}
           to: ${{ secrets.DEPOSIT_STORAGE_ADDRESS }}
           data: ${{ needs.prepare-transaction.outputs.data }}
-      - run: echo ${{ needs.prepare-transaction.outputs.data }}
   
   comment2:
     name: Commenting on Issue (Done1)
