@@ -1,0 +1,79 @@
+name: Release User Deposit
+
+on:
+  issues:
+    types: [ opened ]
+
+env:
+  username: ${{ github.event.issue.user.login }}
+  userId: ${{ github.event.issue.user.node_id }}
+  issueNumber: ${{ github.event.issue.number }}
+  depositNumber: ${{ github.event.issue.body }}
+
+jobs:
+  get-user-config:
+    name: Get User Config
+    runs-on: ubuntu-latest
+    outputs:
+      address: ${{ steps.user-config.outputs.address }}
+    steps:
+      - name: Get Config for ${{ env.username }}
+        if: ${{ github.event.issue.title == 'Release User Deposit' }}
+        uses: octobay/get-user-config-action@v1
+        id: user-config
+        with:
+          username: ${{ env.username }}
+          access-token: ${{ secrets.GITHUB_TOKEN }}
+  
+  comment:
+    name: Commenting on Issue (Processing...)
+    runs-on: ubuntu-latest
+    needs: [ get-user-config ]
+    steps:
+      - name: Create comment
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          issue-number: ${{ env.issueNumber }}
+          body: "Processing your payout request: [show job run](https://github.com/octobay/oracle/actions/runs/${{ github.run_id }})"
+  
+  prepare-transaction:
+    name: Preparing Ethereum Transaction
+    runs-on: ubuntu-latest
+    needs: [ get-user-config ]
+    outputs:
+      data: ${{ steps.encode.outputs.data }}
+    steps:
+      - name: Encode function call
+        uses: mktcode/eth-encode-function-call-action@v1
+        id: encode
+        with:
+          name: 'withdrawUserDeposit'
+          parameters: 'uint256,address,string'
+          values: '${{ env.depositNumber }},${{ needs.get-user-config.outputs.address }},${{ env.userId }}'
+  
+  release-deposit:
+    name: Release Deposit
+    runs-on: ubuntu-latest
+    needs: [ get-user-config, prepare-transaction ]
+    env:
+      address: ${{ needs.get-user-config.outputs.address }}
+    steps:
+      - name: Release Deposit to ${{ env.address }}
+        uses: mktcode/ethtx-action@v1
+        with:
+          rpc-node: ${{ secrets.RPC_NODE }}
+          seed-phrase: ${{ secrets.SEED_PHRASE }}
+          from: ${{ secrets.FROM_ADDRESS }}
+          to: ${{ secrets.DEPOSIT_STORAGE_ADDRESS }}
+          data: ${{ needs.prepare-transaction.outputs.data }}
+  
+  comment-and-close:
+    name: Comment on Issue and close
+    runs-on: ubuntu-latest
+    needs: [ release-deposit ]
+    steps:
+      - name: Close Issue
+        uses: peter-evans/close-issue@v1
+        with:
+          issue-number: ${{ env.issueNumber }}
+          comment: "Done! Deposit sent to: ${{ env.address }}"
