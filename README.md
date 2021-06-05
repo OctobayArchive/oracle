@@ -1,20 +1,24 @@
-# oracle
+# Octobay Oracle
 
-## Build Setup
+- [Run Jobs](https://github.com/Octobay/oracle/issues/new/choose)
 
-```bash
-# install dependencies
-$ npm install
+> More explanation will follow soon.
 
-# serve with hot reload at localhost:3000
-$ npm run dev
+## Projects using Octobay
 
-# build for production and launch server
-$ npm run build
-$ npm run start
+| Link to Repository or Organization | How are you using Octobay? |
+| --- | --- |
+| https://github.com/mktcode/deepest-dungeon | Paying for cool ideas for the game. |
 
-# generate static project
-$ npm run generate
+> To remove your project from the list, simply [create a pull request](https://github.com/Octobay/oracle/edit/main/README.md).
+
+## Octobay Config
+
+As a user, in order to receive funds via Octobay, all you need to do is adding a config file with an Ethereum address to your Readme Repository.
+
+`.octobay.json`
 ```
-
-For detailed explanation on how things work, check out [Nuxt.js docs](https://nuxtjs.org).
+{
+  "address": "your address"
+}
+```
