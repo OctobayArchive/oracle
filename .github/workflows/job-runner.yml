@@ -7,8 +7,7 @@ env:
   username: ${{ github.event.issue.user.login }}
   userId: ${{ github.event.issue.user.node_id }}
   issueNumber: ${{ github.event.issue.number }}
-  request-title: ${{ github.event.issue.title }}
-  request-body: ${{ github.event.issue.body }}
+  request: ${{ github.event.issue.body }}
 
 jobs:
   
@@ -52,7 +51,7 @@ jobs:
     steps:
       - id: parse
         run: |
-          COMMAND_RAW="${{ env.request-body }}"
+          COMMAND_RAW="${{ env.request }}"
           REGEXP="^(0x[a-fA-F0-9]+)\n(0x[a-fA-F0-9]{40}):([a-zA-Z]+)\(([a-z0-9,]+)\)"
           [[ $COMMAND =~ $REGEXP ]] && COMMAND_TX=${BASH_REMATCH[1]} && COMMAND_CONSUMER=${BASH_REMATCH[2]} && COMMAND_FUNCTION=${BASH_REMATCH[3]} && COMMAND_PARAMS=${BASH_REMATCH[4]}
           echo "::set-output name=tx::$COMMAND_TX"
@@ -69,7 +68,7 @@ jobs:
   # Fetch current ETH/USD price.
   ethusd:
     runs-on: ubuntu-latest
-    if: ${{ startsWith(env.request-title , '[ETHUSD]' ) }}
+    if: ${{ startsWith(github.event.issue.title, '[ETHUSD]' ) }}
     outputs:
       price: ${{ steps.ethusd.outputs.price }}
     steps:
