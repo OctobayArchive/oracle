@@ -79,6 +79,9 @@ jobs:
       - id: verify
         run: |
           echo "::set-output name=valid::${{ steps.get-tx.outputs.from == needs.user-config.outputs.address && needs.get-tx.outputs.to == secrets.ORACLE_ADDRESS && needs.get-tx.outputs.value == '1000000000000000' }}"
+          echo "From: ${{ steps.get-tx.outputs.from }}"
+          echo "To: ${{ steps.get-tx.outputs.to }}"
+          echo "Value: ${{ steps.get-tx.outputs.value }}"
   
   ##### FETCH DATA SPECIFIC TO THE REQUESTED JOB:
   
@@ -97,9 +100,9 @@ jobs:
   
   # And now we can prepare the function call.
   prepare-transaction:
-    name: Preparing Ethereum Transaction
+    name: Preparing Fulfillment Transaction
     runs-on: ubuntu-latest
-    needs: [ parse-request, ethusd ]
+    needs: [ parse-request, payment-tx, ethusd ]
     outputs:
       data: ${{ steps.encode.outputs.data }}
     steps:
@@ -144,6 +147,7 @@ jobs:
   comment_failed:
     name: Commenting on Issue (Failed)
     runs-on: ubuntu-latest
+    needs: [ payment-tx ]
     if: ${{ needs.payment-tx.outputs.valid == 'false' }}
     steps:
       - name: Create comment
