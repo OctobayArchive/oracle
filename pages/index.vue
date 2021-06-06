@@ -105,7 +105,7 @@ export default {
             'https://api.github.com/repos/octobay/oracle/issues',
             {
               title: '[ETHUSD]',
-              body: tx.id,
+              body: tx.transactionHash,
             },
             {
               headers: { Authorization: 'bearer ' + this.githubAccessToken },
