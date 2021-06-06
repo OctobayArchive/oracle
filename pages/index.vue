@@ -60,7 +60,14 @@ export default {
             code,
           })
           .then((response) => {
-            console.log(response)
+            this.$axios
+              .$get(`https://api.github.com/user`, {
+                headers: { Authorization: 'bearer ' + response.accessToken },
+              })
+              .then((githubUser) => {
+                console.log(githubUser)
+                this.githubUser = githubUser
+              })
           })
       }
     } else {
