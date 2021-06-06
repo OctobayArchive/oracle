@@ -67,17 +67,18 @@ jobs:
   payment-tx:
     name: Verify Payment Transaction
     runs-on: ubuntu-latest
-    needs: [ parse-request ]
+    needs: [ parse-request, user-config ]
     outputs:
-      from: ${{ steps.get-tx.outputs.address }}
-      to: ${{ steps.get-tx.outputs.to }}
-      value: ${{ steps.get-tx.outputs.value }}
+      valid: ${{ steps.verify.outputs.valid }}
     steps:
       - uses: octobay/eth-get-tx-action@v1
         id: get-tx
         with:
           rpc-node: ${{ secrets.RPC_NODE }}
           tx-hash: ${{ needs.parse-request.outputs.tx }}
+      - id: verify
+        run: |
+          echo "::set-output name=valid::${{ steps.get-tx.outputs.from == needs.user-config.outputs.address && needs.get-tx.outputs.to == secrets.ORACLE_ADDRESS && needs.get-tx.outputs.value == '1000000000000000' }}"
   
   ##### FETCH DATA SPECIFIC TO THE REQUESTED JOB:
   
@@ -117,7 +118,7 @@ jobs:
     name: Send Transaction
     runs-on: ubuntu-latest
     needs: [ user-config, parse-request, prepare-transaction, payment-tx ]
-    if: ${{ needs.payment-tx.outputs.from == needs.user-config.outputs.address && needs.payment-tx.outputs.to == secrets.ORACLE_ADDRESS && needs.payment-tx.outputs.value == '1000000000000000' }}
+    if: ${{ needs.payment-tx.outputs.valid }}
     steps:
       - name: "Fulfilling Oracle Request for: ${{ needs.parse-request.outputs.consumer }}"
         uses: octobay/ethtx-action@v1
@@ -143,7 +144,7 @@ jobs:
   comment_failed:
     name: Commenting on Issue (Failed)
     runs-on: ubuntu-latest
-    if: ${{ needs.payment-tx.outputs.from != needs.user-config.outputs.address || needs.payment-tx.outputs.to != secrets.ORACLE_ADDRESS || needs.payment-tx.outputs.value != '1000000000000000' }}
+    if: ${{ !needs.payment-tx.outputs.valid }}
     steps:
       - name: Create comment
         uses: peter-evans/create-or-update-comment@v1
