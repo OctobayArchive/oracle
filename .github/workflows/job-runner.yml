@@ -76,12 +76,15 @@ jobs:
         with:
           rpc-node: ${{ secrets.RPC_NODE }}
           tx-hash: ${{ needs.parse-request.outputs.tx }}
+      - id: oracle-address
+        run: |
+          echo "::set-output name=address::${{ secrets.ORACLE_ADDRESS }}"
       - id: verify
         run: |
-          echo "::set-output name=valid::${{ steps.get-tx.outputs.from == needs.user-config.outputs.address && needs.get-tx.outputs.to == secrets.ORACLE_ADDRESS && needs.get-tx.outputs.value == '1000000000000000' }}"
-          echo "From: ${{ steps.get-tx.outputs.from }}"
-          echo "To: ${{ steps.get-tx.outputs.to }}"
-          echo "Value: ${{ steps.get-tx.outputs.value }}"
+          echo "::set-output name=valid::${{ steps.get-tx.outputs.from == needs.user-config.outputs.address && needs.get-tx.outputs.to == steps.oracle-address.outputs.address && needs.get-tx.outputs.value == '1000000000000000' }}"
+          echo "From: ${{ steps.get-tx.outputs.from }} (Expected: ${{ needs.user-config.outputs.address }})"
+          echo "To: ${{ steps.get-tx.outputs.to }} (Expected: ${{ steps.oracle-address.outputs.address }})"
+          echo "Value: ${{ steps.get-tx.outputs.value }} (Expected: 1000000000000000)"
   
   ##### FETCH DATA SPECIFIC TO THE REQUESTED JOB:
   
