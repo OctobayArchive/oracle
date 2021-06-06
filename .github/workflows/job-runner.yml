@@ -70,7 +70,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ startsWith(github.event.issue.title, '[ETHUSD]' ) }}
     outputs:
-      price: ${{ steps.ethusd.outputs.price }}
+      int: ${{ steps.ethusd.outputs.int }}
     steps:
       - name: Get ETH/USD Price Feed
         uses: octobay/ethusd-pricefeed-action@v1
