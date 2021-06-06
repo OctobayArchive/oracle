@@ -1,0 +1,125 @@
+name: Oracle Job Runner
+on:
+  issues:
+    types: [ opened ]
+
+env:
+  username: ${{ github.event.issue.user.login }}
+  userId: ${{ github.event.issue.user.node_id }}
+  issueNumber: ${{ github.event.issue.number }}
+  request-title: ${{ github.event.issue.title }}
+  request-body: ${{ github.event.issue.body }}
+
+jobs:
+  
+  ##### COMMON FOR ALL JOBS:
+
+  # First we get the configuration (currently just the address) of the user that made the request.
+  # So that we can check whether the payment transaction was made by this user. (not implemented yet)
+  get-user-config:
+    name: Get User Config
+    runs-on: ubuntu-latest
+    outputs:
+      address: ${{ steps.user-config.outputs.address }}
+    steps:
+      - name: Get Config for ${{ env.username }}
+        if: ${{ github.event.issue.title == 'Release User Deposit' }}
+        uses: octobay/get-user-config-action@v1
+        id: user-config
+        with:
+          username: ${{ env.username }}
+          access-token: ${{ secrets.GITHUB_TOKEN }}
+  
+  # We let them know we are on it.
+  comment_processing:
+    name: Commenting on Issue (Processing...)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create comment
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          issue-number: ${{ env.issueNumber }}
+          body: "Processing your request: [show job run](https://github.com/octobay/oracle/actions/runs/${{ github.run_id }})"
+
+  # And we parse the actual request (issue body) to get the tx ID of the oracle payment, the consumer contract and the function we need to send the result to.
+  parse-request:
+    runs-on: ubuntu-latest
+    outputs:
+      tx: ${{ steps.parse.outputs.tx }}
+      consumer: ${{ steps.parse.outputs.consumer }}
+      function: ${{ steps.parse.outputs.function }}
+      params: ${{ steps.parse.outputs.params }}
+    steps:
+      - id: parse
+        run: |
+          COMMAND_RAW="${{ env.request-body }}"
+          REGEXP="^(0x[a-fA-F0-9]+)\n(0x[a-fA-F0-9]{40}):([a-zA-Z]+)\(([a-z0-9,]+)\)"
+          [[ $COMMAND =~ $REGEXP ]] && COMMAND_TX=${BASH_REMATCH[1]} && COMMAND_CONSUMER=${BASH_REMATCH[2]} && COMMAND_FUNCTION=${BASH_REMATCH[3]} && COMMAND_PARAMS=${BASH_REMATCH[4]}
+          echo "::set-output name=tx::$COMMAND_TX"
+          echo "::set-output name=consumer::$COMMAND_CONSUMER"
+          echo "::set-output name=function::$COMMAND_FUNCTION"
+          echo "::set-output name=params::$COMMAND_PARAMS"
+          echo "Tx: $COMMAND_TX"
+          echo "Consumer: $COMMAND_CONSUMER"
+          echo "Function: $COMMAND_FUNCTION"
+          echo "Params: $COMMAND_PARAMS"
+  
+  ##### FETCH DATA SPECIFIC TO THE REQUESTED JOB:
+  
+  # Fetch current ETH/USD price.
+  ethusd:
+    runs-on: ubuntu-latest
+    if: ${{ startsWith(env.request-title , '[ETHUSD]' ) }}
+    outputs:
+      price: ${{ steps.ethusd.outputs.price }}
+    steps:
+      - name: Get ETH/USD Price Feed
+        uses: octobay/ethusd-pricefeed-action@v1
+        id: ethusd
+        with:
+          rpc-node: ${{ secrets.RPC_NODE }}
+  
+  # And now we can prepare the function call.
+  prepare-transaction:
+    name: Preparing Ethereum Transaction
+    runs-on: ubuntu-latest
+    needs: [ parse-request, ethusd ]
+    outputs:
+      data: ${{ steps.encode.outputs.data }}
+    steps:
+      - name: Encode function call
+        uses: octobay/eth-encode-function-call-action@v1
+        id: encode
+        with:
+          name: ${{ needs.parse-request.outputs.function }}
+          parameters: ${{ needs.parse-request.outputs.params }}
+          values: '${{ needs.ethusd.outputs.int }}'
+  
+  ##### COMMON FOR ALL JOBS:
+  
+  # Then we broadcast it.
+  send-transaction:
+    name: Send Transaction
+    runs-on: ubuntu-latest
+    needs: [ parse-request, prepare-transaction ]
+    steps:
+      - name: "Fulfilling Oracle Request for: ${{ needs.parse-request.outputs.consumer }}"
+        uses: octobay/ethtx-action@v1
+        with:
+          rpc-node: ${{ secrets.RPC_NODE }}
+          seed-phrase: ${{ secrets.SEED_PHRASE }}
+          from: ${{ secrets.ORACLE_ADDRESS }}
+          to: ${{ needs.parse-request.outputs.consumer }}
+          data: ${{ needs.prepare-transaction.outputs.data }}
+  
+  # Now comment on the issue and close it.
+  comment-and-close:
+    name: Comment on Issue and close
+    runs-on: ubuntu-latest
+    needs: [ send-transaction ]
+    steps:
+      - name: Close Issue
+        uses: peter-evans/close-issue@v1
+        with:
+          issue-number: ${{ env.issueNumber }}
+          comment: "Done! Request fulfilled for ${{ needs.parse-request.outputs.consumer }}"
