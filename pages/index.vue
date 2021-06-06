@@ -38,6 +38,7 @@ export default {
     return {
       ethPrice: 0,
       web3: null,
+      contractAddress: '0x183BB83438307a04132f48EE9649D8534d786cE0',
       contract: null,
       oracle: '0xA56d9e73f98212e56A2eFb00c9F47d1da64937ee',
       updated: false,
@@ -49,10 +50,7 @@ export default {
   mounted() {
     if (window.ethereum) {
       this.web3 = new Web3(window.ethereum)
-      this.contract = new this.web3.eth.Contract(
-        ABI,
-        '0x183BB83438307a04132f48EE9649D8534d786cE0'
-      )
+      this.contract = new this.web3.eth.Contract(ABI, this.contractAddress)
       this.getEthPrice()
       this.connect()
 
@@ -105,7 +103,8 @@ export default {
             'https://api.github.com/repos/octobay/oracle/issues',
             {
               title: '[ETHUSD]',
-              body: tx.transactionHash,
+              body: `${tx.transactionHash}
+setEthPrice(uint256)`,
             },
             {
               headers: { Authorization: 'bearer ' + this.githubAccessToken },
