@@ -2,8 +2,9 @@
   <div class="container mt-5 text-center">
     <h1>Octobay Oracle Demo</h1>
     <div class="alert alert-info mx-auto mt-4 mb-5" style="max-width: 360px">
-      Make sure you are connected to the Kovan test network and then you can pay
-      the oracle (0.001 ETH) to update the ETH price on the
+      Make sure you are connected to the Kovan test network in your MetaMask
+      wallet and connect to your GitHub account. You can then pay the oracle
+      (0.001 ETH) to update the ETH price on the
       <a
         href="https://kovan.etherscan.io/address/0x183BB83438307a04132f48EE9649D8534d786cE0"
         target="_blank"
@@ -11,6 +12,7 @@
         example contract </a
       >.
     </div>
+    <p v-if="githubUser" class="lead">Hi {{ githubUser.login }}!</p>
     <button class="btn btn-primary" @click="getEthPrice">Get ETH Price</button>
     <button v-if="githubUser" class="btn btn-primary" @click="updateEthPrice">
       Update ETH Price
@@ -65,7 +67,6 @@ export default {
                 headers: { Authorization: 'bearer ' + response.accessToken },
               })
               .then((githubUser) => {
-                console.log(githubUser)
                 this.githubUser = githubUser
               })
           })
@@ -98,7 +99,13 @@ export default {
           value: this.web3.utils.toWei('0.001', 'ether'),
         })
         .then((tx) => {
-          // send tx ID to oracle repo (as an issue)
+          this.$axios.$post(
+            'https://api.github.com/repos/octobay/oracle/issues',
+            {
+              title: '[ETHUSD]',
+              body: tx.id,
+            }
+          )
         })
     },
   },
