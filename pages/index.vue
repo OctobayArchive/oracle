@@ -1,7 +1,7 @@
 <template>
-  <div class="container mt-5 text-center">
+  <div class="container mt-5 text-center" style="max-width: 360px">
     <h1>Octobay Oracle Demo</h1>
-    <div class="alert alert-info mx-auto mt-4 mb-5" style="max-width: 360px">
+    <div class="alert alert-info mx-auto mt-4 mb-5">
       Make sure you are connected to the Kovan test network in your MetaMask
       wallet and connect to your GitHub account. You can then pay the oracle
       (0.001 ETH) to update the ETH price on the
@@ -24,6 +24,13 @@
     >
       Connect to GitHub
     </a>
+    <div v-if="requestIssue" class="alert alert-info mt-3">
+      Oracle request has been made:
+      <a :href="requestIssue.html_url" target="_blank">Watch Job Run</a>
+    </div>
+    <div v-if="requestFulfilled" class="alert alert-success mt-3">
+      Request fulfilled!
+    </div>
     <h5 class="mt-3">Current ETH price:</h5>
     <h3>${{ (Number(ethPrice) / 100000000).toFixed(2) }}</h3>
     <div v-if="updated" class="text-success">Updated!</div>
@@ -39,13 +46,15 @@ export default {
     return {
       ethPrice: 0,
       web3: null,
-      contractAddress: '0x183BB83438307a04132f48EE9649D8534d786cE0',
+      contractAddress: '0xcb2b1061748d07c913048a498fcd72c3fc0f527d',
       contract: null,
       oracle: '0xA56d9e73f98212e56A2eFb00c9F47d1da64937ee',
       updated: false,
       accounts: [],
       githubUser: null,
       githubAccessToken: null,
+      requestIssue: null,
+      requestFulfilled: false,
     }
   },
   mounted() {
@@ -54,6 +63,11 @@ export default {
       this.contract = new this.web3.eth.Contract(ABI, this.contractAddress)
       this.getEthPrice()
       this.connect()
+
+      this.contract.events.ETHPriceUpdated(() => {
+        this.getEthPrice()
+        this.requestFulfilled = true
+      })
 
       const code = this.$route.query.code
       if (code) {
@@ -100,17 +114,21 @@ export default {
           value: this.web3.utils.toWei('0.001', 'ether'),
         })
         .then((tx) => {
-          this.$axios.$post(
-            'https://api.github.com/repos/octobay/oracle/issues',
-            {
-              title: '[ETHUSD]',
-              body: `${tx.transactionHash}
+          this.$axios
+            .$post(
+              'https://api.github.com/repos/octobay/oracle/issues',
+              {
+                title: '[ETHUSD]',
+                body: `${tx.transactionHash}
               ${this.contractAddress}:setEthPrice(uint256)`,
-            },
-            {
-              headers: { Authorization: 'bearer ' + this.githubAccessToken },
-            }
-          )
+              },
+              {
+                headers: { Authorization: 'bearer ' + this.githubAccessToken },
+              }
+            )
+            .then((issue) => {
+              this.requestIssue = issue
+            })
         })
     },
   },
