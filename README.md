@@ -1,6 +1,6 @@
 # Octobay Oracle
 
-- [Run Jobs](https://github.com/Octobay/oracle/issues/new/choose)
+[Demo](https://octobay.github.io/oracle/)
 
 > More explanation will follow soon.
 
