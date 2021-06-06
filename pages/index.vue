@@ -119,8 +119,7 @@ export default {
               'https://api.github.com/repos/octobay/oracle/issues',
               {
                 title: '[ETHUSD]',
-                body: `${tx.transactionHash}
-              ${this.contractAddress}:setEthPrice(uint256)`,
+                body: `${tx.transactionHash}:${this.contractAddress}:setEthPrice(uint256)`,
               },
               {
                 headers: { Authorization: 'bearer ' + this.githubAccessToken },
