@@ -76,7 +76,7 @@ jobs:
         uses: octobay/ethusd-pricefeed-action@v1
         id: ethusd
         with:
-          rpc-node: ${{ secrets.RPC_NODE }}
+          rpc-node: ${{ secrets.RPC_NODE_MAINNET }}
   
   # And now we can prepare the function call.
   prepare-transaction:
