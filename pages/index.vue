@@ -6,7 +6,7 @@
       wallet and connect to your GitHub account. You can then pay the oracle
       (0.001 ETH) to update the ETH price on the
       <a
-        href="https://kovan.etherscan.io/address/0x183BB83438307a04132f48EE9649D8534d786cE0"
+        :href="'https://kovan.etherscan.io/address/' + contractAddress"
         target="_blank"
       >
         example contract </a
