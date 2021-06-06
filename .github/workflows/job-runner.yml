@@ -73,7 +73,7 @@ jobs:
       int: ${{ steps.ethusd.outputs.int }}
     steps:
       - name: Get ETH/USD Price Feed
-        uses: octobay/ethusd-pricefeed-action@v1
+        uses: octobay/ethusd-pricefeed-action@v1.1
         id: ethusd
         with:
           rpc-node: ${{ secrets.RPC_NODE_MAINNET }}
