@@ -56,7 +56,9 @@ export default {
       const code = this.$route.query.code
       if (code) {
         this.$axios
-          .$post('https://octobay.uber.space/github/access-token', { code })
+          .$post('https://octobay.uber.space/oracle-demo/github/access-token', {
+            code,
+          })
           .then((response) => {
             console.log(response)
           })
