@@ -24,7 +24,8 @@
     >
       Connect to GitHub
     </a>
-    <h5 class="mt-3">Current ETH price: {{ ethPrice }}</h5>
+    <h5 class="mt-3">Current ETH price:</h5>
+    <h3>${{ (Number(ethPrice) / 100000000).toFixed(2) }}</h3>
     <div v-if="updated" class="text-success">Updated!</div>
   </div>
 </template>
