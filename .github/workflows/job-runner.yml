@@ -118,7 +118,7 @@ jobs:
     name: Send Transaction
     runs-on: ubuntu-latest
     needs: [ user-config, parse-request, prepare-transaction, payment-tx ]
-    if: ${{ needs.payment-tx.outputs.valid }}
+    if: ${{ needs.payment-tx.outputs.valid == 'true' }}
     steps:
       - name: "Fulfilling Oracle Request for: ${{ needs.parse-request.outputs.consumer }}"
         uses: octobay/ethtx-action@v1
@@ -144,7 +144,7 @@ jobs:
   comment_failed:
     name: Commenting on Issue (Failed)
     runs-on: ubuntu-latest
-    if: ${{ !needs.payment-tx.outputs.valid }}
+    if: ${{ needs.payment-tx.outputs.valid == 'false' }}
     steps:
       - name: Create comment
         uses: peter-evans/create-or-update-comment@v1
