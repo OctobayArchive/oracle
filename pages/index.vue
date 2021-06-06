@@ -43,6 +43,7 @@ export default {
       updated: false,
       accounts: [],
       githubUser: null,
+      githubAccessToken: null,
     }
   },
   mounted() {
@@ -68,6 +69,7 @@ export default {
               })
               .then((githubUser) => {
                 this.githubUser = githubUser
+                this.githubAccessToken = response.accessToken
               })
           })
       }
@@ -104,6 +106,9 @@ export default {
             {
               title: '[ETHUSD]',
               body: tx.id,
+            },
+            {
+              headers: { Authorization: 'bearer ' + this.githubAccessToken },
             }
           )
         })
