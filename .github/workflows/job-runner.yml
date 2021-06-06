@@ -14,8 +14,8 @@ jobs:
   ##### COMMON FOR ALL JOBS:
 
   # First we get the configuration (currently just the address) of the user that made the request.
-  # So that we can check whether the payment transaction was made by this user. (not implemented yet)
-  get-user-config:
+  # So that we can check whether the payment transaction was made by this user.
+  user-config:
     name: Get User Config
     runs-on: ubuntu-latest
     outputs:
@@ -62,6 +62,22 @@ jobs:
           echo "Consumer: $REQUEST_CONSUMER"
           echo "Function: $REQUEST_FUNCTION"
           echo "Params: $REQUEST_PARAMS"
+
+  # Fetch the payment transaction, so we can verify it.
+  payment-tx:
+    name: Verify Payment Transaction
+    runs-on: ubuntu-latest
+    needs: [ parse-request ]
+    outputs:
+      from: ${{ steps.get-tx.outputs.address }}
+      to: ${{ steps.get-tx.outputs.to }}
+      value: ${{ steps.get-tx.outputs.value }}
+    steps:
+      - uses: octobay/eth-get-tx-action@v1
+        id: get-tx
+        with:
+          rpc-node: ${{ secrets.RPC_NODE }}
+          tx-hash: ${{ needs.parse-request.outputs.tx }}
   
   ##### FETCH DATA SPECIFIC TO THE REQUESTED JOB:
   
@@ -100,7 +116,8 @@ jobs:
   send-transaction:
     name: Send Transaction
     runs-on: ubuntu-latest
-    needs: [ parse-request, prepare-transaction ]
+    needs: [ user-config, parse-request, prepare-transaction, payment-tx ]
+    if: ${{ needs.payment-tx.outputs.from == needs.user-config.outputs.address && needs.payment-tx.outputs.to == secrets.ORACLE_ADDRESS && needs.payment-tx.outputs.value == '1000000000000000' }}
     steps:
       - name: "Fulfilling Oracle Request for: ${{ needs.parse-request.outputs.consumer }}"
         uses: octobay/ethtx-action@v1
@@ -122,3 +139,14 @@ jobs:
         with:
           issue-number: ${{ env.issueNumber }}
           comment: "Done! Request fulfilled for ${{ needs.parse-request.outputs.consumer }}"
+  
+  comment_failed:
+    name: Commenting on Issue (Failed)
+    runs-on: ubuntu-latest
+    if: ${{ needs.payment-tx.outputs.from != needs.user-config.outputs.address || needs.payment-tx.outputs.to != secrets.ORACLE_ADDRESS || needs.payment-tx.outputs.value != '1000000000000000' }}
+    steps:
+      - name: Create comment
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          issue-number: ${{ env.issueNumber }}
+          body: "Processing failed: No payment found! ([show job run](https://github.com/octobay/oracle/actions/runs/${{ github.run_id }}))"
