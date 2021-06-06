@@ -51,17 +51,17 @@ jobs:
     steps:
       - id: parse
         run: |
-          COMMAND_RAW="${{ env.request }}"
+          REQUEST="${{ env.request }}"
           REGEXP="^(0x[a-fA-F0-9]+):(0x[a-fA-F0-9]{40}):([a-zA-Z]+)\(([a-z0-9,]+)\)$"
-          [[ $COMMAND =~ $REGEXP ]] && COMMAND_TX=${BASH_REMATCH[1]} && COMMAND_CONSUMER=${BASH_REMATCH[2]} && COMMAND_FUNCTION=${BASH_REMATCH[3]} && COMMAND_PARAMS=${BASH_REMATCH[4]}
-          echo "::set-output name=tx::$COMMAND_TX"
-          echo "::set-output name=consumer::$COMMAND_CONSUMER"
-          echo "::set-output name=function::$COMMAND_FUNCTION"
-          echo "::set-output name=params::$COMMAND_PARAMS"
-          echo "Tx: $COMMAND_TX"
-          echo "Consumer: $COMMAND_CONSUMER"
-          echo "Function: $COMMAND_FUNCTION"
-          echo "Params: $COMMAND_PARAMS"
+          [[ $REQUEST =~ $REGEXP ]] && REQUEST_TX=${BASH_REMATCH[1]} && REQUEST_CONSUMER=${BASH_REMATCH[2]} && REQUEST_FUNCTION=${BASH_REMATCH[3]} && REQUEST_PARAMS=${BASH_REMATCH[4]}
+          echo "::set-output name=tx::$REQUEST_TX"
+          echo "::set-output name=consumer::$REQUEST_CONSUMER"
+          echo "::set-output name=function::$REQUEST_FUNCTION"
+          echo "::set-output name=params::$REQUEST_PARAMS"
+          echo "Tx: $REQUEST_TX"
+          echo "Consumer: $REQUEST_CONSUMER"
+          echo "Function: $REQUEST_FUNCTION"
+          echo "Params: $REQUEST_PARAMS"
   
   ##### FETCH DATA SPECIFIC TO THE REQUESTED JOB:
   
