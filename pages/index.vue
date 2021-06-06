@@ -104,7 +104,7 @@ export default {
             {
               title: '[ETHUSD]',
               body: `${tx.transactionHash}
-setEthPrice(uint256)`,
+              ${this.contractAddress}:setEthPrice(uint256)`,
             },
             {
               headers: { Authorization: 'bearer ' + this.githubAccessToken },
