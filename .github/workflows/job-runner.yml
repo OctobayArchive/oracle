@@ -86,6 +86,7 @@ jobs:
           echo "${{ steps.get-tx.outputs.from == needs.user-config.outputs.address }}"
           echo "${{ needs.get-tx.outputs.to == env.oracleAddress }}"
           echo "${{ needs.get-tx.outputs.to == '0xA56d9e73f98212e56A2eFb00c9F47d1da64937ee' }}"
+          echo "${{ '0xA56d9e73f98212e56A2eFb00c9F47d1da64937ee' == '0xA56d9e73f98212e56A2eFb00c9F47d1da64937ee' }}"
           echo "${{ steps.get-tx.outputs.value == '1000000000000000' }}"
   
   ##### FETCH DATA SPECIFIC TO THE REQUESTED JOB:
