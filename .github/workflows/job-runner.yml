@@ -159,7 +159,7 @@ jobs:
   comment-and-close:
     name: Comment on Issue and close
     runs-on: ubuntu-latest
-    needs: [ send-transaction ]
+    needs: [ parse-request, send-transaction ]
     steps:
       - name: Close Issue
         uses: peter-evans/close-issue@v1
