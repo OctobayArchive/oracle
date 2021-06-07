@@ -110,6 +110,7 @@ jobs:
   # Fetch current ETH/USD price.
   ethusd:
     runs-on: ubuntu-latest
+    needs: [ verify-payment ]
     if: ${{ startsWith(github.event.issue.title, '[ETHUSD]' ) }}
     outputs:
       int: ${{ steps.ethusd.outputs.int }}
