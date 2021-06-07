@@ -65,30 +65,42 @@ jobs:
           echo "Params: $REQUEST_PARAMS"
 
   # Fetch the payment transaction, so we can verify it.
-  payment-tx:
+  verify-payment:
     name: Verify Payment Transaction
     runs-on: ubuntu-latest
     needs: [ parse-request, user-config ]
     outputs:
       valid: ${{ steps.verify.outputs.valid }}
+      used: ${{ steps.used.outputs.used }}
     steps:
-      - uses: octobay/eth-get-tx-action@v1
+      - name: Fetch Transaction
+        uses: octobay/eth-get-tx-action@v1
         id: get-tx
         with:
           rpc-node: ${{ secrets.RPC_NODE }}
           tx-hash: ${{ needs.parse-request.outputs.tx }}
-      - id: verify
+      - name: Verify Transaction
+        id: verify
         run: |
           echo "::set-output name=valid::${{ steps.get-tx.outputs.from == needs.user-config.outputs.address && steps.get-tx.outputs.to == env.oracleAddress && steps.get-tx.outputs.value == '1000000000000000' }}"
           echo "From: ${{ steps.get-tx.outputs.from }} (Expected: ${{ needs.user-config.outputs.address }})"
           echo "To: ${{ steps.get-tx.outputs.to }} (Expected: ${{ env.oracleAddress }})"
           echo "Value: ${{ steps.get-tx.outputs.value }} (Expected: 1000000000000000)"
-          echo "${{ steps.get-tx.outputs.from == needs.user-config.outputs.address }}"
-          echo "${{ steps.get-tx.outputs.value == '1000000000000000' }}"
-          echo "${{ '0xA56d9e73f98212e56A2eFb00c9F47d1da64937ee' == '0xA56d9e73f98212e56A2eFb00c9F47d1da64937ee' }}"
-          echo "${{ steps.get-tx.outputs.to == env.oracleAddress }}"
-          echo "${{ steps.get-tx.outputs.to == '0xA56d9e73f98212e56A2eFb00c9F47d1da64937ee' }}"
-  
+      - name: Checkout Repository
+        uses: actions/checkout@v2.3.4
+      - name: Check if payment was already used. Store it if not.
+        id: used
+        run: |
+          if grep -q "${{ needs.parse-request.outputs.tx }}" ./oracle-jobs.log; then
+            echo "::set-output name=used::true"
+          else
+            echo "::set-output name=used::false"
+            echo "${{ needs.parse-request.outputs.tx }}" >> ./oracle-jobs.log
+            git add ./oracle-jobs.log
+            git commit -m "job fulfilled: ${{ needs.parse-request.outputs.tx }}"
+            git push
+          fi
+
   ##### FETCH DATA SPECIFIC TO THE REQUESTED JOB:
   
   # Fetch current ETH/USD price.
@@ -108,7 +120,7 @@ jobs:
   prepare-transaction:
     name: Preparing Fulfillment Transaction
     runs-on: ubuntu-latest
-    needs: [ parse-request, payment-tx, ethusd ]
+    needs: [ parse-request, verify-payment, ethusd ]
     outputs:
       data: ${{ steps.encode.outputs.data }}
     steps:
@@ -126,8 +138,8 @@ jobs:
   send-transaction:
     name: Send Transaction
     runs-on: ubuntu-latest
-    needs: [ user-config, parse-request, prepare-transaction, payment-tx ]
-    if: ${{ needs.payment-tx.outputs.valid == 'true' }}
+    needs: [ user-config, parse-request, prepare-transaction, verify-payment ]
+    if: ${{ needs.verify-payment.outputs.valid == 'true' }}
     steps:
       - name: "Fulfilling Oracle Request for: ${{ needs.parse-request.outputs.consumer }}"
         uses: octobay/ethtx-action@v1
@@ -150,14 +162,26 @@ jobs:
           issue-number: ${{ env.issueNumber }}
           comment: "Done! Request fulfilled for ${{ needs.parse-request.outputs.consumer }}"
   
-  comment_failed:
-    name: Commenting on Issue (Failed)
+  comment_failed_no_payment:
+    name: "Commenting on Issue (Failed: No payment)"
     runs-on: ubuntu-latest
-    needs: [ payment-tx ]
-    if: ${{ needs.payment-tx.outputs.valid == 'false' }}
+    needs: [ verify-payment ]
+    if: ${{ needs.verify-payment.outputs.valid == 'false' }}
     steps:
       - name: Create comment
         uses: peter-evans/create-or-update-comment@v1
         with:
           issue-number: ${{ env.issueNumber }}
           body: "Processing failed: No payment found! ([show job run](https://github.com/octobay/oracle/actions/runs/${{ github.run_id }}))"
+
+  comment_failed_payment_used:
+    name: "Commenting on Issue (Failed: Payment already used)"
+    runs-on: ubuntu-latest
+    needs: [ verify-payment ]
+    if: ${{ needs.verify-payment.outputs.used == 'true' }}
+    steps:
+      - name: Create comment and close Issue
+        uses: peter-evans/close-issue@v1
+        with:
+          issue-number: ${{ env.issueNumber }}
+          comment: "Processing failed: Payment already used! ([show job run](https://github.com/octobay/oracle/actions/runs/${{ github.run_id }}))"
