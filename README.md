@@ -2,6 +2,8 @@
 
 [Demo](https://octobay.github.io/oracle/)
 
+Make sure you have a [`.octobay.json` config](#octobay-config) with an address. Otherwise the oracle will not service your requests.
+
 > More explanation will follow soon.
 
 ## Projects using Octobay
