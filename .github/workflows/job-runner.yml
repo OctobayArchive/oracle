@@ -83,7 +83,9 @@ jobs:
           echo "From: ${{ steps.get-tx.outputs.from }} (Expected: ${{ needs.user-config.outputs.address }})"
           echo "To: ${{ steps.get-tx.outputs.to }} (Expected: ${{ env.oracleAddress }})"
           echo "Value: ${{ steps.get-tx.outputs.value }} (Expected: 1000000000000000)"
+          echo "${{ steps.get-tx.outputs.from == needs.user-config.outputs.address }}"
           echo "${{ needs.get-tx.outputs.to == env.oracleAddress }}"
+          echo "${{ steps.get-tx.outputs.value == '1000000000000000' }}"
   
   ##### FETCH DATA SPECIFIC TO THE REQUESTED JOB:
   
