@@ -92,6 +92,7 @@ jobs:
         id: used
         # https://github.com/actions/checkout#push-a-commit-using-the-built-in-token
         run: |
+          git pull
           if grep -q "${{ needs.parse-request.outputs.tx }}" ./oracle-jobs.log; then
             echo "::set-output name=used::true"
           else
