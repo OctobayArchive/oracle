@@ -23,7 +23,7 @@ jobs:
       address: ${{ steps.user-config.outputs.address }}
     steps:
       - name: Get Config for ${{ env.username }}
-        uses: octobay/get-user-config-action@v1
+        uses: crypto-workflows/get-user-config-action@v1
         id: user-config
         with:
           username: ${{ env.username }}
@@ -74,7 +74,7 @@ jobs:
       used: ${{ steps.used.outputs.used }}
     steps:
       - name: Fetch Transaction
-        uses: octobay/eth-get-tx-action@v1
+        uses: crypto-workflows/eth-get-tx-action@v1
         id: get-tx
         with:
           rpc-node: ${{ secrets.RPC_NODE }}
@@ -116,7 +116,7 @@ jobs:
       int: ${{ steps.ethusd.outputs.int }}
     steps:
       - name: Get ETH/USD Price Feed
-        uses: octobay/ethusd-pricefeed-action@v1.1
+        uses: crypto-workflows/chainlink-pricefeed-action@v1.1
         id: ethusd
         with:
           rpc-node: ${{ secrets.RPC_NODE_MAINNET }}
@@ -130,7 +130,7 @@ jobs:
       data: ${{ steps.encode.outputs.data }}
     steps:
       - name: Encode function call
-        uses: octobay/eth-encode-function-call-action@v1
+        uses: crypto-workflows/eth-encode-function-call-action@v1
         id: encode
         with:
           name: ${{ needs.parse-request.outputs.function }}
@@ -147,7 +147,7 @@ jobs:
     if: ${{ needs.verify-payment.outputs.valid == 'true' }}
     steps:
       - name: "Fulfilling Oracle Request for: ${{ needs.parse-request.outputs.consumer }}"
-        uses: octobay/ethtx-action@v1
+        uses: crypto-workflows/ethtx-action@v1
         with:
           rpc-node: ${{ secrets.RPC_NODE }}
           seed-phrase: ${{ secrets.SEED_PHRASE }}
