@@ -16,7 +16,7 @@ Make sure you have a [`.octobay.json` config](#octobay-config) with an address. 
 
 ## Octobay Config
 
-As a user, in order to receive funds via Octobay, all you need to do is adding a config file with an Ethereum address to your Readme Repository.
+As a user, in order to receive funds via Octobay or trigger oracle jobs, all you need to do is adding a config file with an Ethereum address to your [Readme Repository](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-on-github/about-readmes). Simply create a repository named after your username (like: https://github.com/mktcode/mktcode) and put this config file in it:
 
 `.octobay.json`
 ```
